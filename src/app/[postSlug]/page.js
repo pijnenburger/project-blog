@@ -1,4 +1,5 @@
 import React from "react";
+import { notFound } from "next/navigation";
 //external imports
 import { MDXRemote } from "next-mdx-remote/rsc";
 //Constants & helpers
@@ -11,7 +12,13 @@ import BlogHero from "@/components/BlogHero";
 import styles from "./postSlug.module.css";
 
 export async function generateMetadata({ params }) {
-  const { frontmatter } = await loadBlogPost(params.postSlug);
+  const blogPostData = await loadBlogPost(params.postSlug);
+
+  if (!blogPostData) {
+    return null;
+  }
+
+  const { frontmatter } = blogPostData;
 
   return {
     title: `${frontmatter.title} · ${BLOG_TITLE}`,
@@ -22,7 +29,15 @@ export async function generateMetadata({ params }) {
 const components = COMPONENT_MAP;
 
 async function BlogPost({ params }) {
-  const { frontmatter, content } = await loadBlogPost(params.postSlug);
+  console.time("loadBlogPost");
+  const blogPostData = await loadBlogPost(params.postSlug);
+
+  if (!blogPostData) {
+    notFound();
+  }
+  console.timeEnd("loadBlogPost");
+
+  const { frontmatter, content } = blogPostData;
 
   return (
     <article className={styles.wrapper}>
